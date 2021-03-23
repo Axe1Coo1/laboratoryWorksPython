@@ -1,5 +1,4 @@
 import igraph
-from collections import deque, namedtuple
 import os
 import numpy as np
 import time
@@ -24,7 +23,9 @@ print(len(matrix_smez))
 
 
 def record_array(matrix):
-	name = {0: '0', 1: '1', 2: '2', 3: '3', 4: '4', 5: '5', 6: '6'}
+	name = {}
+	for i in range(len(matrix)):
+		name[i] = str(i)
 	rec_array = []
 	count = [0 for i in range(len(matrix))]
 	num = [[] for i in range(len(matrix))]
@@ -55,21 +56,27 @@ def record_array(matrix):
 	return rec_array
 
 
-R = [(13, 1, 2), (18, 1, 3), (17, 1, 4), (14, 1, 5), (22, 1, 6),
-     (26, 2, 3), (22, 2, 5), (19, 4, 6), (5, 0, 4)]
+def list_smezh(matrix):
+	lst_smz = []
+	for i in range(len(matrix)):
+		for j in range(len(matrix[i])):
+			if matrix[i][j] != 0:
+				lst_smz += [(matrix_smez[i][j], i, j)]
+	print('Размер списка смежности: ', getsizeof(lst_smz))
+	print(lst_smz)
+	return lst_smz
 
 
-def plot_graf(rec_array, R):
+def plot_graf(rec_array, R, name):
 	G = igraph.Graph(directed=True)
-	G.add_vertices(7)
+	G.add_vertices(rec_array[-1]['Номер'] + 1)
 	G.vs['label'] = [rec_array[i]['Имя'] for i in range(len(rec_array))]
 	for i in R:
 		G.add_edges([(i[1], i[2])])
 	# Веса
 	G.es['label'] = [i[0] for i in R]
 	layout = G.layout('kk')
-	igraph.plot(G, 'graph.png', bbox=(800, 600), layout=layout, vertex_size=40, vertex_label_size=10)
-	os.startfile(r'../graph.png')
+	igraph.plot(G, (name + '.png'), bbox=(800, 600), layout=layout, vertex_size=40, vertex_label_size=10)
 
 
 def plot_grafT(rec_array, T):
@@ -82,11 +89,12 @@ def plot_grafT(rec_array, T):
 	G.es['label'] = [i[0] for i in T]
 	layout = G.layout('kk')
 	igraph.plot(G, 'graphT.png', bbox=(800, 600), layout=layout, vertex_size=40, vertex_label_size=10)
-	os.startfile(r'../graphT.png')
+
 
 
 def alg(Rs, U, D, T):
 	start_time = time.time()
+	Rs = sorted(R, key=lambda x: x[0])
 	for i in range(10 ** 6):
 		for r in Rs:
 			if r[1] not in U or r[2] not in U:  # проверка для исключения циклов в остове
@@ -116,24 +124,34 @@ def alg(Rs, U, D, T):
 	print('Ср. время работы: ', exec_time / 10 ** 6)
 
 
+def list_smezh_array(rec_array):
+	lst_smz = []
+	counter = 1
+	for i in rec_array:
+		for j in i['Дети']:
+			lst_smz += [(counter, int(i['Имя']), j)]
+			counter += 1
+	print('Размер списка смежности: ', getsizeof(lst_smz))
+	print(lst_smz)
+	return lst_smz
+
+
+R = list_smezh(matrix_smez)
 Rs = sorted(R, key=lambda x: x[0])
 U = set()  # список соединенных вершин
 D = {}  # словарь списка изолированных групп вершин
 T = []  # список ребер остова
 
-
 alg(Rs, U, D, T)
 rec_array = record_array(matrix_smez)
-# plot_grafT(rec_array, T)
-# plot_graf(rec_array, R)
-
-
+plot_graf(rec_array, T, 'grafT')
+plot_graf(rec_array, R, 'graf')
 
 
 times = []
 sizes = []
-number = np.arange(1, 10, 1)
-for i in range(1, 10):
+number = np.arange(1, 4, 1)
+for i in range(1, 4):
 	size = i
 	start_time = time.time()
 	N = size * size
@@ -150,12 +168,15 @@ for i in range(1, 10):
 				row[j] = 1
 		matrix.append(row)
 
-
 	exec_time = time.time() - start_time
-	times.append(exec_time * 1000)
+	times.append(exec_time * 100000)
 	sizes.append(getsizeof(matrix))
 	print("Размер", getsizeof(matrix))
 	print('Время выполнения:', exec_time)
+
+rec_array2 = record_array(matrix)
+lsist_smj2 = list_smezh_array(rec_array2)
+plot_graf(rec_array2, lsist_smj2, 'квадратная_матрица')
 
 plt.plot(number, sizes)
 plt.xlabel('Размер матрицы')
@@ -165,13 +186,6 @@ plt.plot(number, times)
 plt.xlabel('Размер матрицы')
 plt.ylabel('Время в милисекунда')
 plt.show()
-
-
-
-
-
-
-
 
 # inf = float('inf')
 # Edge = namedtuple('Edge', 'start, end, cost')
