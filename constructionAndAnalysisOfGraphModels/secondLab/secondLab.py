@@ -6,10 +6,9 @@ import time
 from sys import getsizeof
 import matplotlib.pyplot as plt
 
-
-#-------------------------------------------------
+# -------------------------------------------------
 # Алгоритм Краскала поиска минимального остова графа
-#-------------------------------------------------
+# -------------------------------------------------
 
 # список ребер графа (длина, вершина 1, вершина 2)
 
@@ -22,6 +21,7 @@ matrix_smez = np.array([np.array([0, 0, 0, 0, 5, 0, 0]),
                         np.array([0, 0, 0, 0, 0, 0, 0])])
 print('Размер матрицы: ', getsizeof(matrix_smez))
 print(len(matrix_smez))
+
 
 def record_array(matrix):
 	name = {0: '0', 1: '1', 2: '2', 3: '3', 4: '4', 5: '5', 6: '6'}
@@ -55,67 +55,116 @@ def record_array(matrix):
 	return rec_array
 
 
+R = [(13, 1, 2), (18, 1, 3), (17, 1, 4), (14, 1, 5), (22, 1, 6),
+     (26, 2, 3), (22, 2, 5), (19, 4, 6), (5, 0, 4)]
 
-def plot_graf(rec_array, lst_smz):
+
+def plot_graf(rec_array, R):
 	G = igraph.Graph(directed=True)
 	G.add_vertices(7)
 	G.vs['label'] = [rec_array[i]['Имя'] for i in range(len(rec_array))]
-	G.add_edges([i[0] for i in lst_smz])
+	for i in R:
+		G.add_edges([(i[1], i[2])])
 	# Веса
-	G.es['label'] = [i[1] for i in lst_smz]
+	G.es['label'] = [i[0] for i in R]
 	layout = G.layout('kk')
 	igraph.plot(G, 'graph.png', bbox=(800, 600), layout=layout, vertex_size=40, vertex_label_size=10)
 	os.startfile(r'../graph.png')
 
-def list_smezh(matrix):
-	lst_smz = []
-	for i in range(len(matrix)):
-		for j in range(len(matrix[i])):
-			if matrix[i][j] != 0:
-				lst_smz += [[tuple([i, j]), matrix_smez[i][j]]]
-	print('Размер списка смежности: ', getsizeof(lst_smz))
-	print("Список смежности: ", lst_smz)
-	return lst_smz
 
-lst_smezh = list_smezh(matrix_smez)
+def plot_grafT(rec_array, T):
+	G = igraph.Graph(directed=True)
+	G.add_vertices(7)
+	G.vs['label'] = [rec_array[i]['Имя'] for i in range(len(rec_array))]
+	for i in T:
+		G.add_edges([(i[1], i[2])])
+	# Веса
+	G.es['label'] = [i[0] for i in T]
+	layout = G.layout('kk')
+	igraph.plot(G, 'graphT.png', bbox=(800, 600), layout=layout, vertex_size=40, vertex_label_size=10)
+	os.startfile(r'../graphT.png')
 
-R = [(13, 1, 2), (18, 1, 3), (17, 1, 4), (14, 1, 5), (22, 1, 6),
-     (26, 2, 3), (22, 2, 5), (19, 4, 6),(5, 0, 4)]
+
+def alg(Rs, U, D, T):
+	start_time = time.time()
+	for i in range(10 ** 6):
+		for r in Rs:
+			if r[1] not in U or r[2] not in U:  # проверка для исключения циклов в остове
+				if r[1] not in U and r[2] not in U:  # если обе вершины не соединены, то
+					D[r[1]] = [r[1], r[2]]  # формируем в словаре ключ с номерами вершин
+					D[r[2]] = D[r[1]]  # и связываем их с одним и тем же списком вершин
+				else:  # иначе
+					if not D.get(r[1]):  # если в словаре нет первой вершины, то
+						D[r[2]].append(r[1])  # добавляем в список первую вершину
+						D[r[1]] = D[r[2]]  # и добавляем ключ с номером первой вершины
+					else:
+						D[r[1]].append(r[2])  # иначе, все то же самое делаем со второй вершиной
+						D[r[2]] = D[r[1]]
+
+				T.append(r)  # добавляем ребро в остов
+				U.add(r[1])  # добавляем вершины в множество U
+				U.add(r[2])
+
+		for r in Rs:  # проходим по ребрам второй раз и объединяем разрозненные группы вершин
+			if r[2] not in D[r[1]]:  # если вершины принадлежат разным группам, то объединяем
+				T.append(r)  # добавляем ребро в остов
+				gr1 = D[r[1]]
+				D[r[1]] += D[r[2]]  # объединем списки двух групп вершин
+				D[r[2]] += gr1
+	exec_time = time.time() - start_time
+	print('Время работы:', exec_time)
+	print('Ср. время работы: ', exec_time / 10 ** 6)
+
 
 Rs = sorted(R, key=lambda x: x[0])
-U = set()   # список соединенных вершин
-D = {}      # словарь списка изолированных групп вершин
-T = []      # список ребер остова
-
-for r in Rs:
-    if r[1] not in U or r[2] not in U:  # проверка для исключения циклов в остове
-        if r[1] not in U and r[2] not in U: # если обе вершины не соединены, то
-            D[r[1]] = [r[1], r[2]]          # формируем в словаре ключ с номерами вершин
-            D[r[2]] = D[r[1]]               # и связываем их с одним и тем же списком вершин
-        else:                           # иначе
-            if not D.get(r[1]):             # если в словаре нет первой вершины, то
-                D[r[2]].append(r[1])        # добавляем в список первую вершину
-                D[r[1]] = D[r[2]]           # и добавляем ключ с номером первой вершины
-            else:
-                D[r[1]].append(r[2])        # иначе, все то же самое делаем со второй вершиной
-                D[r[2]] = D[r[1]]
-
-        T.append(r)             # добавляем ребро в остов
-        U.add(r[1])             # добавляем вершины в множество U
-        U.add(r[2])
-
-for r in Rs:    # проходим по ребрам второй раз и объединяем разрозненные группы вершин
-    if r[2] not in D[r[1]]:     # если вершины принадлежат разным группам, то объединяем
-        T.append(r)             # добавляем ребро в остов
-        gr1 = D[r[1]]
-        D[r[1]] += D[r[2]]      # объединем списки двух групп вершин
-        D[r[2]] += gr1
+U = set()  # список соединенных вершин
+D = {}  # словарь списка изолированных групп вершин
+T = []  # список ребер остова
 
 
-
-print(T)
+alg(Rs, U, D, T)
 rec_array = record_array(matrix_smez)
-plot_graf(rec_array, lst_smezh)
+# plot_grafT(rec_array, T)
+# plot_graf(rec_array, R)
+
+
+
+
+times = []
+sizes = []
+number = np.arange(1, 10, 1)
+for i in range(1, 10):
+	size = i
+	start_time = time.time()
+	N = size * size
+	matrix = ([])
+	for i in range(N):
+		row = (np.zeros(N))
+		for j in range(N):
+			if i + 1 != size and i + 1 != size * 2 and i + 1 != size * 3 and i + 1 != size * 4 and i + 1 != size * 5 and i + 1 != size * 3 and i + 1 != size * 6 and i + 1 != size * 7 and i + 1 != size * 8 and i + 1 != size * 9 and i + 1 != size * 10 and i + 1 != size * 11 and i + 1 != size * 12 and i + 1 != size * 13:
+				if i + 1 == j:
+					row[j] = 1
+				elif i + size == j:
+					row[j] = 1
+			elif i + size == j:
+				row[j] = 1
+		matrix.append(row)
+
+
+	exec_time = time.time() - start_time
+	times.append(exec_time * 1000)
+	sizes.append(getsizeof(matrix))
+	print("Размер", getsizeof(matrix))
+	print('Время выполнения:', exec_time)
+
+plt.plot(number, sizes)
+plt.xlabel('Размер матрицы')
+plt.ylabel('Размер в битах')
+plt.show()
+plt.plot(number, times)
+plt.xlabel('Размер матрицы')
+plt.ylabel('Время в милисекунда')
+plt.show()
 
 
 
