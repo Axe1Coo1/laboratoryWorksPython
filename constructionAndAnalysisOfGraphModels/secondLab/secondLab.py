@@ -133,10 +133,12 @@ rec_array = record_array(matrix_smez_test_graph)
 plot_graf(rec_array, T, 'Тестовый_граф_после_сортировки')
 plot_graf(rec_array, List_smezh_dlya_test_graph, 'Тестовый_граф')
 
+
+# Построение квадратной решётки
 times = []
 sizes = []
-number = np.arange(1, 4, 1)
-for i in range(1, 4):
+number = np.arange(1, 6, 1)
+for i in range(1, 6):
 	size = i
 	start_time = time.time()
 	N = size * size
@@ -149,8 +151,6 @@ for i in range(1, 4):
 					row[j] = 1
 				elif i + size == j:
 					row[j] = 1
-				# elif i +  == j:
-				# 	row[j] = 1
 			elif i + size == j:
 				row[j] = 1
 		matrix.append(row)
