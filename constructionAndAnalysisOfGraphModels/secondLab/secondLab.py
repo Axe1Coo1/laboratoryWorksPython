@@ -149,6 +149,8 @@ for i in range(1, 4):
 					row[j] = 1
 				elif i + size == j:
 					row[j] = 1
+				# elif i +  == j:
+				# 	row[j] = 1
 			elif i + size == j:
 				row[j] = 1
 		matrix.append(row)
