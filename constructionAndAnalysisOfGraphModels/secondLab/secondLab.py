@@ -5,11 +5,7 @@ import time
 from sys import getsizeof
 import matplotlib.pyplot as plt
 
-# -------------------------------------------------
-# Алгоритм Краскала поиска минимального остова графа
-# -------------------------------------------------
-
-# список смежности графа - (вес ребра, вершина 1, вершина 2)
+# список смежности графа имеет вид - (вес ребра, вершина 1, вершина 2)
 
 # Тестовый граф
 matrix_smez_test_graph = np.array([np.array([0, 0, 0, 0, 5, 0, 0]),
@@ -21,7 +17,7 @@ matrix_smez_test_graph = np.array([np.array([0, 0, 0, 0, 5, 0, 0]),
                                    np.array([0, 0, 0, 0, 0, 0, 0])])
 print('Размер матрицы: ', getsizeof(matrix_smez_test_graph))
 
-
+# Функция записи массива данных из первой лабораторной
 def record_array(matrix):
 	name = {}
 	for i in range(len(matrix)):
@@ -55,7 +51,7 @@ def record_array(matrix):
 		print(rec_array[i])
 	return rec_array
 
-
+# Функция записи списка смежности для тестовой матрицы из первой лабораторной
 def list_smezh(matrix):
 	lst_smz = []
 	for i in range(len(matrix)):
@@ -78,7 +74,7 @@ def plot_graf(rec_array, R, name):
 	layout = G.layout('kk')
 	igraph.plot(G, (name + '.png'), bbox=(800, 600), layout=layout, vertex_size=40, vertex_label_size=10)
 
-
+# Алгоритм Краскала
 def alg(Rs, U, D, T):
 	start_time = time.time()
 	for i in range(10 ** 6):
@@ -109,7 +105,7 @@ def alg(Rs, U, D, T):
 	print('Время работы:', exec_time)
 	print('Ср. время работы: ', exec_time / 10 ** 6)
 
-
+# Функция для построения списка смежности из массива данных
 def list_smezh_array(rec_array):
 	lst_smz = []
 	counter = 1
@@ -137,8 +133,8 @@ plot_graf(rec_array, List_smezh_dlya_test_graph, 'Тестовый_граф')
 # Построение квадратной решётки
 times = []
 sizes = []
-number = np.arange(1, 6, 1)
-for i in range(1, 6):
+number = np.arange(1, 5, 1)
+for i in range(1, 5):
 	size = i
 	start_time = time.time()
 	N = size * size
@@ -156,7 +152,7 @@ for i in range(1, 6):
 		matrix.append(row)
 
 	exec_time = time.time() - start_time
-	times.append(exec_time * 100000)
+	times.append(exec_time * 1000)
 	sizes.append(getsizeof(matrix))
 	print("Размер", getsizeof(matrix))
 	print('Время выполнения:', exec_time)
