@@ -1,5 +1,6 @@
+import math
+
 import igraph
-import os
 import numpy as np
 import time
 from sys import getsizeof
@@ -8,14 +9,15 @@ import matplotlib.pyplot as plt
 # список смежности графа имеет вид - (вес ребра, вершина 1, вершина 2)
 
 # Тестовый граф
-matrix_smez_test_graph = np.array([np.array([0, 0, 0, 0, 5, 0, 0]),
+matrix_smez_test_graph = np.array([np.array([0, 0, 0, 0, 0, 0, 0]),
                                    np.array([0, 0, 13, 18, 17, 14, 22]),
                                    np.array([0, 0, 0, 26, 0, 22, 0]),
                                    np.array([0, 0, 0, 0, 0, 0, 0]),
-                                   np.array([0, 0, 0, 0, 0, 0, 19]),
+                                   np.array([5, 0, 0, 0, 0, 0, 19]),
                                    np.array([0, 0, 0, 0, 0, 0, 0]),
                                    np.array([0, 0, 0, 0, 0, 0, 0])])
 print('Размер матрицы: ', getsizeof(matrix_smez_test_graph))
+
 
 # Функция записи массива данных из первой лабораторной
 def record_array(matrix):
@@ -51,9 +53,10 @@ def record_array(matrix):
 		print(rec_array[i])
 	return rec_array
 
+
 # Функция записи списка смежности для тестовой матрицы из первой лабораторной
 def list_smezh(matrix):
-	lst_smz = []
+	lst_smz = [(math.inf, -1, -1)]
 	for i in range(len(matrix)):
 		for j in range(len(matrix[i])):
 			if matrix[i][j] != 0:
@@ -74,36 +77,65 @@ def plot_graf(rec_array, R, name):
 	layout = G.layout('kk')
 	igraph.plot(G, (name + '.png'), bbox=(800, 600), layout=layout, vertex_size=40, vertex_label_size=10)
 
+
+times = []
+
+
+def get_min(R, U):
+	rm = (math.inf, -1, -1)
+	for v in U:
+		rr = min(R, key=lambda x: x[0] if (x[1] == v or x[2] == v) and (x[1] not in U or x[2] not in U) else math.inf)
+		if rm[0] > rr[0]:
+			rm = rr
+		return rm
+
+def mod_alg(rec_array, R, U, T):
+	while len(U) < rec_array[-1]['Номер'] + 1:
+		r = get_min(R, U)
+		if r[0] == math.inf:
+			break
+		T.append(r)
+		U.add(r[1])
+		U.add(r[2])
+
 # Алгоритм Краскала
 def alg(Rs, U, D, T):
 	start_time = time.time()
-	for i in range(10 ** 6):
-		for r in Rs:
-			if r[1] not in U or r[2] not in U:  # проверка для исключения циклов в остове
-				if r[1] not in U and r[2] not in U:  # если обе вершины не соединены, то
-					D[r[1]] = [r[1], r[2]]  # формируем в словаре ключ с номерами вершин
-					D[r[2]] = D[r[1]]  # и связываем их с одним и тем же списком вершин
-				else:  # иначе
-					if not D.get(r[1]):  # если в словаре нет первой вершины, то
-						D[r[2]].append(r[1])  # добавляем в список первую вершину
-						D[r[1]] = D[r[2]]  # и добавляем ключ с номером первой вершины
-					else:
-						D[r[1]].append(r[2])  # иначе, все то же самое делаем со второй вершиной
-						D[r[2]] = D[r[1]]
+	for r in Rs:
+		if r[1] not in U or r[2] not in U:  # проверка для исключения циклов в остове
+			if r[1] not in U and r[2] not in U:  # если обе вершины не соединены, то
+				D[r[1]] = [r[1], r[2]]  # формируем в словаре ключ с номерами вершин
+				D[r[2]] = D[r[1]]  # и связываем их с одним и тем же списком вершин
+			else:  # иначе
+				if not D.get(r[1]):  # если в словаре нет первой вершины, то
+					D[r[2]].append(r[1])  # добавляем в список первую вершину
+					D[r[1]] = D[r[2]]  # и добавляем ключ с номером первой вершины
+				else:
+					D[r[1]].append(r[2])  # иначе, все то же самое делаем со второй вершиной
+					D[r[2]] = D[r[1]]
 
-				T.append(r)  # добавляем ребро в остов
-				U.add(r[1])  # добавляем вершины в множество U
-				U.add(r[2])
+			T.append(r)  # добавляем ребро в остов
+			U.add(r[1])  # добавляем вершины в множество U
+			U.add(r[2])
+			print(D)
+			print(T)
+	# for r in Rs:  # проходим по ребрам второй раз и объединяем разрозненные группы вершин
+	#     if r[2] not in D[r[1]]:  # если вершины принадлежат разным группам, то объединяем
+	#         T.append(r)  # добавляем ребро в остов
+	#         print(D[r[2]], D[r[1]])
+	#         gr1 = D[r[1]]
+	#         D[r[1]] += D[r[2]]  # объединем списки двух групп вершин
+	#         D[r[2]] += gr1
 
-		for r in Rs:  # проходим по ребрам второй раз и объединяем разрозненные группы вершин
-			if r[2] not in D[r[1]]:  # если вершины принадлежат разным группам, то объединяем
-				T.append(r)  # добавляем ребро в остов
-				gr1 = D[r[1]]
-				D[r[1]] += D[r[2]]  # объединем списки двух групп вершин
-				D[r[2]] += gr1
-	exec_time = time.time() - start_time
-	print('Время работы:', exec_time)
-	print('Ср. время работы: ', exec_time / 10 ** 6)
+	print(T)
+	# exec_time = time.time() - start_time
+	# times.append(exec_time * 1000)
+
+
+# exec_time = time.time() - start_time
+# print('Время работы:', exec_time)
+# print('Ср. время работы: ', exec_time / 10 ** 6)
+
 
 # Функция для построения списка смежности из массива данных
 def list_smezh_array(rec_array):
@@ -118,23 +150,30 @@ def list_smezh_array(rec_array):
 	return lst_smz
 
 
+
+rec_array = record_array(matrix_smez_test_graph)
 List_smezh_dlya_test_graph = list_smezh(matrix_smez_test_graph)
 Sorted_list_smezh = sorted(List_smezh_dlya_test_graph, key=lambda x: x[0])
 U = set()  # список соединенных вершин
 D = {}  # словарь списка изолированных групп вершин
 T = []  # список ребер остова
 
-alg(Sorted_list_smezh, U, D, T)
-rec_array = record_array(matrix_smez_test_graph)
+U_mod = {1}
+T1 = []
+mod_alg(rec_array, List_smezh_dlya_test_graph, U_mod, T)
+
+# alg(Sorted_list_smezh, U, D, T)
+print(T)
+del List_smezh_dlya_test_graph[0]
+#
 plot_graf(rec_array, T, 'Тестовый_граф_после_сортировки')
 plot_graf(rec_array, List_smezh_dlya_test_graph, 'Тестовый_граф')
 
-
 # Построение квадратной решётки
-times = []
+# times = []
 sizes = []
-number = np.arange(1, 5, 1)
-for i in range(1, 5):
+number = np.arange(1, 6, 1)
+for i in range(1, 6):
 	size = i
 	start_time = time.time()
 	N = size * size
@@ -150,9 +189,23 @@ for i in range(1, 5):
 			elif i + size == j:
 				row[j] = 1
 		matrix.append(row)
+	start_time = time.time()
+	rec_array_graph = record_array(matrix)
+	lsist_smzh = list_smezh_array(rec_array_graph)
+	# plot_graf(rec_array_graph, lsist_smzh, 'квадратная_матрица')
 
+	Sorted_lst_smezh = sorted(lsist_smzh, key=lambda x: x[0])
+	U2 = set()  # список соединенных вершин
+	D2 = {}  # словарь списка изолированных групп вершин
+	T2 = []  # список ребер остова
+
+	alg(Sorted_lst_smezh, U2, D2, T2)
+	plot_graf(rec_array_graph, T2, 'квадратная_матрица_отсортированная')
 	exec_time = time.time() - start_time
 	times.append(exec_time * 1000)
+
+	# exec_time = time.time() - start_time
+	# times.append(exec_time * 1000)
 	sizes.append(getsizeof(matrix))
 	print("Размер", getsizeof(matrix))
 	print('Время выполнения:', exec_time)
