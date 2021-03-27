@@ -1,5 +1,3 @@
-import math
-
 import igraph
 import numpy as np
 import time
@@ -9,11 +7,11 @@ import matplotlib.pyplot as plt
 # список смежности графа имеет вид - (вес ребра, вершина 1, вершина 2)
 
 # Тестовый граф
-matrix_smez_test_graph = np.array([np.array([0, 0, 0, 0, 0, 0, 0]),
+matrix_smez_test_graph = np.array([np.array([0, 0, 0, 0, 5, 0, 0]),
                                    np.array([0, 0, 13, 18, 17, 14, 22]),
                                    np.array([0, 0, 0, 26, 0, 22, 0]),
                                    np.array([0, 0, 0, 0, 0, 0, 0]),
-                                   np.array([5, 0, 0, 0, 0, 0, 19]),
+                                   np.array([0, 0, 0, 0, 0, 0, 19]),
                                    np.array([0, 0, 0, 0, 0, 0, 0]),
                                    np.array([0, 0, 0, 0, 0, 0, 0])])
 print('Размер матрицы: ', getsizeof(matrix_smez_test_graph))
@@ -56,7 +54,7 @@ def record_array(matrix):
 
 # Функция записи списка смежности для тестовой матрицы из первой лабораторной
 def list_smezh(matrix):
-	lst_smz = [(math.inf, -1, -1)]
+	lst_smz = []
 	for i in range(len(matrix)):
 		for j in range(len(matrix[i])):
 			if matrix[i][j] != 0:
@@ -81,28 +79,11 @@ def plot_graf(rec_array, R, name):
 times = []
 
 
-def get_min(R, U):
-	rm = (math.inf, -1, -1)
-	for v in U:
-		rr = min(R, key=lambda x: x[0] if (x[1] == v or x[2] == v) and (x[1] not in U or x[2] not in U) else math.inf)
-		if rm[0] > rr[0]:
-			rm = rr
-		return rm
-
-def mod_alg(rec_array, R, U, T):
-	while len(U) < rec_array[-1]['Номер'] + 1:
-		r = get_min(R, U)
-		if r[0] == math.inf:
-			break
-		T.append(r)
-		U.add(r[1])
-		U.add(r[2])
-
 # Алгоритм Краскала
 def alg(Rs, U, D, T):
 	start_time = time.time()
 	for r in Rs:
-		if r[1] not in U or r[2] not in U:  # проверка для исключения циклов в остове
+		if r[1] not in U or r[2] not in U or r[2] not in D[r[1]]:  # проверка для исключения циклов в остове
 			if r[1] not in U and r[2] not in U:  # если обе вершины не соединены, то
 				D[r[1]] = [r[1], r[2]]  # формируем в словаре ключ с номерами вершин
 				D[r[2]] = D[r[1]]  # и связываем их с одним и тем же списком вершин
@@ -117,17 +98,18 @@ def alg(Rs, U, D, T):
 			T.append(r)  # добавляем ребро в остов
 			U.add(r[1])  # добавляем вершины в множество U
 			U.add(r[2])
-			print(D)
-			print(T)
+	# print(T)
 	# for r in Rs:  # проходим по ребрам второй раз и объединяем разрозненные группы вершин
-	#     if r[2] not in D[r[1]]:  # если вершины принадлежат разным группам, то объединяем
-	#         T.append(r)  # добавляем ребро в остов
-	#         print(D[r[2]], D[r[1]])
-	#         gr1 = D[r[1]]
-	#         D[r[1]] += D[r[2]]  # объединем списки двух групп вершин
-	#         D[r[2]] += gr1
-
-	print(T)
+	# 	if r[2] not in D[r[1]]:  # если вершины принадлежат разным группам, то объединяем
+	# 		T.append(r)  # добавляем ребро в остов
+	# 		# print(D[r[2]], D[r[1]])
+	# 		print(D)
+	# 		gr1 = D[r[1]]
+	# 		D[r[1]] += D[r[2]]  # объединем списки двух групп вершин
+	# 		D[r[2]] += gr1
+	# 		print(D)
+	# print(D)
+	# print(T)
 	# exec_time = time.time() - start_time
 	# times.append(exec_time * 1000)
 
@@ -150,22 +132,14 @@ def list_smezh_array(rec_array):
 	return lst_smz
 
 
-
-rec_array = record_array(matrix_smez_test_graph)
 List_smezh_dlya_test_graph = list_smezh(matrix_smez_test_graph)
 Sorted_list_smezh = sorted(List_smezh_dlya_test_graph, key=lambda x: x[0])
 U = set()  # список соединенных вершин
 D = {}  # словарь списка изолированных групп вершин
 T = []  # список ребер остова
 
-U_mod = {1}
-T1 = []
-mod_alg(rec_array, List_smezh_dlya_test_graph, U_mod, T)
-
-# alg(Sorted_list_smezh, U, D, T)
-print(T)
-del List_smezh_dlya_test_graph[0]
-#
+alg(Sorted_list_smezh, U, D, T)
+rec_array = record_array(matrix_smez_test_graph)
 plot_graf(rec_array, T, 'Тестовый_граф_после_сортировки')
 plot_graf(rec_array, List_smezh_dlya_test_graph, 'Тестовый_граф')
 
