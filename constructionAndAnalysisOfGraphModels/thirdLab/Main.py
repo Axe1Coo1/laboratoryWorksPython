@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 # список смежности графа имеет вид - (вес ребра, вершина 1, вершина 2)
 # Возраст вершин хранится в словаре ключ - номер вершины, значение - возраст
 
-quantity = [5, 10, 20]  # Список размеров графа
+quantity = [20]  # Список размеров графа
 ages = {}  # Словарь для записи возрастов вершин
 x = []  # Список усредлнённых значений диаметров графа для построения графиков
 acc = []  # Список всех значений диаметров графа для построения графиков
@@ -79,6 +79,18 @@ def plot_graf(lst_smz, name):
 	igraph.plot(G, (name + '.png'), bbox=(800, 600), layout=layout, vertex_size=40, vertex_label_size=10)
 	acc.append(G.diameter(directed=True, unconn=True, weights=None))  # Добавление диаметра графа в список acc
 
+# Часть, отвечающая за построение спектра степеней графа
+	neis = []
+	neis += G.neighborhood_size()
+	neis[:] = [x - 1 for x in neis]
+	print(neis)
+	neis = (np.unique(neis, return_counts=True))
+	plt.bar(neis[0], neis[1])
+	plt.xlabel('Степень')
+	plt.ylabel('Кол-во вершин')
+	plt.show()
+
+
 
 for K in range(4, 5):
 	for i in quantity:
@@ -93,3 +105,5 @@ for K in range(4, 5):
 plt.xlabel('Диаметр графа')
 plt.ylabel('Размер графа')
 plt.show()
+
+
