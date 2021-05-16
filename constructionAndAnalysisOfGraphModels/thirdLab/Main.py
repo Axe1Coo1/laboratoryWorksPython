@@ -25,6 +25,7 @@ def generate_list_smezh(quantity, K):
 	global ages
 	ages = {}
 	lst_smz = []
+	sort_ages = []
 	for i in range(quantity):
 		ages[i] = 0
 		if len(lst_smz) < 1:
@@ -32,6 +33,12 @@ def generate_list_smezh(quantity, K):
 			ages = add_ages(ages)
 		# print(lst_smz)
 		else:
+			# for i in ages.values():
+			# 	sort_ages.append(i)
+			# sort_ages = sorted(sort_ages)
+			# for i in range(len(ages)):
+			# 	ages[i] = sort_ages[i]
+
 			lst_smz += [(1, i, make_probability_for_real(ages, K))]
 			ages = add_ages(ages)
 	# print('Размер списка смежности: ', getsizeof(lst_smz))
@@ -48,7 +55,9 @@ def make_probability_for_real(ages, K):
 		for i in range(len(ages) - 1):  # Получение суммы из возрастов / 1 в степени К
 			sum_values += 1 / (ages.get(i) ** K)
 		A = (1 / sum_values)  # Получение значения альфа
-		probability_list.append(A * (1 / add ** K))  # Добавление в список вероятностей вероятности выбора вершины i
+		if i == 0:
+			continue
+		probability_list.append(A * (1 / i ** K))  # Добавление в список вероятностей вероятности выбора вершины i
 	item_prob = random.random()  # Генерация случайного числа в диапозоне от 0 до 1
 	probability_list = np.cumsum(probability_list)  # Получение кумулитивной суммы списка вероятностей
 	counter = 0
@@ -92,7 +101,7 @@ def plot_graf(lst_smz, name):
 
 
 
-for K in range(4, 5):
+for K in range(1, 2):
 	for i in quantity:
 		for j in range(1):
 			lst_smz = generate_list_smezh(i, K)
